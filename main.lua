@@ -2,29 +2,23 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-   Name = "67 HUB | RNG & Admin",
-   LoadingTitle = "Fetching from GitHub...",
+   Name = "67 HUB | RNG & Utility",
+   LoadingTitle = "Connecting to GitHub...",
    LoadingSubtitle = "by Starfall",
    ConfigurationSaving = { Enabled = false }
 })
 
--- SafeLoad function to prevent UI errors if a file is missing
+-- Central loader
 local function SafeLoad(url)
-    local success, result = pcall(function()
-        return loadstring(game:HttpGet(url))()
+    pcall(function()
+        loadstring(game:HttpGet(url))()
     end)
-    if not success then
-        Rayfield:Notify({
-            Title = "Load Error",
-            Content = "Check your GitHub file path!",
-            Duration = 5
-        })
-    end
 end
 
 -- [[ RNG TAB ]]
 local RngTab = Window:CreateTab("RNG Events", 4483362458)
 
+-- 1. AUTO ROLL
 RngTab:CreateToggle({
    Name = "Auto-Roll Dice",
    CurrentValue = false,
@@ -37,7 +31,20 @@ RngTab:CreateToggle({
    end,
 })
 
--- THE WORKING CODEX SCRIPT
+-- 2. AUTO CRAFT
+RngTab:CreateToggle({
+   Name = "Auto-Craft Dice",
+   CurrentValue = false,
+   Flag = "AutoCraft",
+   Callback = function(Value)
+      _G.AutoCraftActive = Value
+      if Value then
+          SafeLoad("https://raw.githubusercontent.com/TheStarfallIsInfinite/67/main/modules/autocraft.lua")
+      end
+   end,
+})
+
+-- 3. WEATHER STRIKER (From image_840c3e.png)
 RngTab:CreateToggle({
    Name = "Universal Weather Striker (Mega II)",
    CurrentValue = false,
@@ -46,6 +53,21 @@ RngTab:CreateToggle({
       _G.StormStrikerActive = Value
       if Value then
           SafeLoad("https://raw.githubusercontent.com/TheStarfallIsInfinite/67/main/modules/stormstriker.lua")
+      end
+   end,
+})
+
+-- [[ UTILITY TAB ]]
+local UtilTab = Window:CreateTab("Utility", 4483362458)
+
+UtilTab:CreateToggle({
+   Name = "Anti-Disconnect (Auto Jump)",
+   CurrentValue = false,
+   Flag = "AntiAFK",
+   Callback = function(Value)
+      _G.autoJumping = Value
+      if Value then
+          SafeLoad("https://raw.githubusercontent.com/TheStarfallIsInfinite/67/main/modules/antidirect.lua")
       end
    end,
 })
