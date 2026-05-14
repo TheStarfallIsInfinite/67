@@ -1,22 +1,28 @@
--- MODULE: autoroll.lua (Final Stable Version)
+-- MODULE: autoroll.lua (Bypass Edition)
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local remote = ReplicatedStorage:WaitForChild("Network"):WaitForChild("Rng_Roll")
+local network = ReplicatedStorage:WaitForChild("Network")
+local rollRemote = network:WaitForChild("Rng_Roll")
+local hiddenRemote = network:FindFirstChild("Rng_HiddenRoll_Enable")
 
 _G.AutoRollActive = true
 
+-- If the game has a "Hidden Roll" feature, we enable it once
+if hiddenRemote then
+    pcall(function() hiddenRemote:FireServer(true) end)
+end
+
 task.spawn(function()
     while _G.AutoRollActive do
-        local success, result = pcall(function()
-            -- Confirmed "First" is the correct argument for the RNG Egg directory
-            return remote:InvokeServer("First") 
+        -- We use task.spawn to fire and IMMEDIATELY move on without waiting for server 'yield'
+        task.spawn(function()
+            pcall(function()
+                -- Trying the "First" argument from image_92a002.png
+                rollRemote:InvokeServer("First")
+            end)
         end)
-
-        if not success then
-            -- Small wait if the server lags to prevent crashing
-            task.wait(1)
-        end
         
-        -- High speed rolling
-        task.wait(0.05) 
+        -- We reduce the wait to just under the 2s mark. 
+        -- If the server is 2s, we try 1.8s to catch the 'window'
+        task.wait(0.3) 
     end
 end)
