@@ -1,21 +1,51 @@
--- [[ 67 HUB - FINAL STABLE VERSION ]]
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+-- [[ 67 HUB - MULTI-INSTANCE SAFE VERSION ]]
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
 
+-- Specifically check if the RNG instance is the one active in the container
+local function GetCurrentInstance()
+    local things = Workspace:FindFirstChild("__THINGS")
+    if things then
+        local container = things:FindFirstChild("__INSTANCE_CONTAINER")
+        if container and container:FindFirstChild("Active") then
+            -- We look for RngInstance specifically as seen in image_872f56.png
+            local activeInstance = container.Active:FindFirstChildOfClass("Folder") 
+            return activeInstance and activeInstance.Name or nil
+        end
+    end
+    return nil
+end
+
+local function JoinRngEvent()
+    local current = GetCurrentInstance()
+    
+    -- Only attempt join if we aren't already there
+    if current ~= "RngInstance" then
+        local network = ReplicatedStorage:WaitForChild("Network")
+        -- Using the specific enter remote from image_86d93c.png
+        local enterRemote = network:FindFirstChild("Instancing_PlayerEnterInstance")
+        
+        if enterRemote then
+            -- Tell the server we want the RNG world specifically
+            enterRemote:InvokeServer("RngInstance")
+            warn("67 HUB: Sending request to enter RngInstance...")
+            task.wait(3)
+        end
+    end
+end
+
+JoinRngEvent()
+
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Window = Rayfield:CreateWindow({
    Name = "67 HUB | RNG & Admin",
-   LoadingTitle = "Syncing with GitHub...",
+   LoadingTitle = "Checking Instance State...",
    LoadingSubtitle = "by Starfall",
-   ConfigurationSaving = {
-      Enabled = true,
-      FolderName = "67Hub_Config",
-      FileName = "MainSettings"
-   }
+   ConfigurationSaving = { Enabled = false }
 })
 
 -- [[ RNG & CRAFTING TAB ]]
 local RngTab = Window:CreateTab("RNG Event", 4483362458)
-
-RngTab:CreateSection("Auto Rolling")
 
 RngTab:CreateToggle({
    Name = "Auto-Roll Dice (High Speed)",
@@ -29,8 +59,6 @@ RngTab:CreateToggle({
    end,
 })
 
-RngTab:CreateSection("Auto Crafting")
-
 RngTab:CreateToggle({
    Name = "Auto-Craft (Priority: II -> Mega -> Mega II)",
    CurrentValue = false,
@@ -38,7 +66,6 @@ RngTab:CreateToggle({
    Callback = function(Value)
       _G.AutoCraftActive = Value
       if Value then
-          -- Loads the script using the correct RngCoins2 ID
           loadstring(game:HttpGet("https://raw.githubusercontent.com/TheStarfalllsInfinite/67/main/modules/autocraft.lua"))()
       end
    end,
@@ -46,9 +73,6 @@ RngTab:CreateToggle({
 
 -- [[ ADMIN EVENTS TAB ]]
 local AdminTab = Window:CreateTab("Admin Events", 4483362458)
-
-AdminTab:CreateSection("Abuse Features")
-
 AdminTab:CreateToggle({
    Name = "Auto-Claim Admin",
    CurrentValue = false,
@@ -61,22 +85,8 @@ AdminTab:CreateToggle({
    end,
 })
 
--- [[ SETTINGS TAB ]]
-local SettingsTab = Window:CreateTab("Settings", 4483362458)
-
-SettingsTab:CreateButton({
-   Name = "Destroy UI",
-   Callback = function()
-      _G.AutoRollActive = false
-      _G.AutoCraftActive = false
-      getgenv().AdminEnabled = false
-      Rayfield:Destroy()
-   end,
-})
-
 Rayfield:Notify({
-   Title = "67 HUB Loaded",
-   Content = "Auto-Roll and Auto-Craft (RngCoins2) active.",
-   Duration = 5,
-   Image = 4483362458,
+   Title = "67 HUB Active",
+   Content = "Current Instance: " .. (GetCurrentInstance() or "Main World"),
+   Duration = 5
 })
