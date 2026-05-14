@@ -1,9 +1,9 @@
--- [[ 67 HUB - MAIN EXECUTION ]]
+-- [[ 67 HUB - FINAL STABLE VERSION ]]
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-   Name = "67 HUB | Multi-Script",
-   LoadingTitle = "Initializing Systems...",
+   Name = "67 HUB | RNG & Admin",
+   LoadingTitle = "Syncing with GitHub...",
    LoadingSubtitle = "by Starfall",
    ConfigurationSaving = {
       Enabled = true,
@@ -12,20 +12,34 @@ local Window = Rayfield:CreateWindow({
    }
 })
 
--- [[ RNG EVENT TAB ]]
+-- [[ RNG & CRAFTING TAB ]]
 local RngTab = Window:CreateTab("RNG Event", 4483362458)
 
-RngTab:CreateSection("Auto Features")
+RngTab:CreateSection("Auto Rolling")
 
 RngTab:CreateToggle({
-   Name = "Auto-Roll Dice (Fixed)",
+   Name = "Auto-Roll Dice (High Speed)",
    CurrentValue = false,
    Flag = "RngAutoRoll",
    Callback = function(Value)
       _G.AutoRollActive = Value
       if Value then
-          -- Loads your working autoroll.lua with the "First" argument
           loadstring(game:HttpGet("https://raw.githubusercontent.com/TheStarfalllsInfinite/67/main/modules/autoroll.lua"))()
+      end
+   end,
+})
+
+RngTab:CreateSection("Auto Crafting")
+
+RngTab:CreateToggle({
+   Name = "Auto-Craft (Priority: II -> Mega -> Mega II)",
+   CurrentValue = false,
+   Flag = "AutoCraftToggle",
+   Callback = function(Value)
+      _G.AutoCraftActive = Value
+      if Value then
+          -- Loads the script using the correct RngCoins2 ID
+          loadstring(game:HttpGet("https://raw.githubusercontent.com/TheStarfalllsInfinite/67/main/modules/autocraft.lua"))()
       end
    end,
 })
@@ -42,7 +56,6 @@ AdminTab:CreateToggle({
    Callback = function(Value)
       getgenv().AdminEnabled = Value
       if Value then
-          -- Loads your adminabuse.lua module
           loadstring(game:HttpGet("https://raw.githubusercontent.com/TheStarfalllsInfinite/67/main/modules/adminabuse.lua"))()
       end
    end,
@@ -54,17 +67,16 @@ local SettingsTab = Window:CreateTab("Settings", 4483362458)
 SettingsTab:CreateButton({
    Name = "Destroy UI",
    Callback = function()
-      -- Emergency stop for all loops
       _G.AutoRollActive = false
+      _G.AutoCraftActive = false
       getgenv().AdminEnabled = false
       Rayfield:Destroy()
    end,
 })
 
--- Notify successful load
 Rayfield:Notify({
-   Title = "67 HUB Status",
-   Content = "All modules synced and ready.",
+   Title = "67 HUB Loaded",
+   Content = "Auto-Roll and Auto-Craft (RngCoins2) active.",
    Duration = 5,
    Image = 4483362458,
 })
