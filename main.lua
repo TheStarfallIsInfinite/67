@@ -18,7 +18,21 @@ end
 -- [[ RNG TAB ]]
 local RngTab = Window:CreateTab("RNG Events", 4483362458)
 
--- 1. AUTO ROLL
+-- TELEPORT TO MEGA CHEST (Using SafeLoad now!)
+RngTab:CreateButton({
+   Name = "Teleport to Mega Chest",
+   Callback = function()
+       SafeLoad("https://raw.githubusercontent.com/TheStarfallIsInfinite/67/main/modules/chesttp.lua")
+       
+       Rayfield:Notify({
+           Title = "Teleport",
+           Content = "Executing chesttp.lua from GitHub...",
+           Duration = 3
+       })
+   end,
+})
+
+-- AUTO ROLL
 RngTab:CreateToggle({
    Name = "Auto-Roll Dice",
    CurrentValue = false,
@@ -31,7 +45,7 @@ RngTab:CreateToggle({
    end,
 })
 
--- 2. AUTO CRAFT
+-- AUTO CRAFT
 RngTab:CreateToggle({
    Name = "Auto-Craft Dice",
    CurrentValue = false,
@@ -44,7 +58,7 @@ RngTab:CreateToggle({
    end,
 })
 
--- 3. WEATHER STRIKER (From image_840c3e.png)
+-- WEATHER STRIKER
 RngTab:CreateToggle({
    Name = "Universal Weather Striker (Mega II)",
    CurrentValue = false,
@@ -61,7 +75,7 @@ RngTab:CreateToggle({
 local UtilTab = Window:CreateTab("Utility", 4483362458)
 
 UtilTab:CreateToggle({
-   Name = "Anti-Disconnect (Auto Jump)",
+   Name = "Anti-Disconnect (Auto Click)",
    CurrentValue = false,
    Flag = "AntiAFK",
    Callback = function(Value)
