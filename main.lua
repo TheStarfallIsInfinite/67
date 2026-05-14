@@ -1,51 +1,33 @@
--- [[ 67 HUB - MULTI-INSTANCE SAFE VERSION ]]
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Workspace = game:GetService("Workspace")
-
--- Specifically check if the RNG instance is the one active in the container
-local function GetCurrentInstance()
-    local things = Workspace:FindFirstChild("__THINGS")
-    if things then
-        local container = things:FindFirstChild("__INSTANCE_CONTAINER")
-        if container and container:FindFirstChild("Active") then
-            -- We look for RngInstance specifically as seen in image_872f56.png
-            local activeInstance = container.Active:FindFirstChildOfClass("Folder") 
-            return activeInstance and activeInstance.Name or nil
-        end
-    end
-    return nil
-end
-
-local function JoinRngEvent()
-    local current = GetCurrentInstance()
-    
-    -- Only attempt join if we aren't already there
-    if current ~= "RngInstance" then
-        local network = ReplicatedStorage:WaitForChild("Network")
-        -- Using the specific enter remote from image_86d93c.png
-        local enterRemote = network:FindFirstChild("Instancing_PlayerEnterInstance")
-        
-        if enterRemote then
-            -- Tell the server we want the RNG world specifically
-            enterRemote:InvokeServer("RngInstance")
-            warn("67 HUB: Sending request to enter RngInstance...")
-            task.wait(3)
-        end
-    end
-end
-
-JoinRngEvent()
-
+-- [[ 67 HUB - MANUAL INSTANCE VERSION ]]
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
 local Window = Rayfield:CreateWindow({
    Name = "67 HUB | RNG & Admin",
-   LoadingTitle = "Checking Instance State...",
+   LoadingTitle = "Connecting to GitHub...",
    LoadingSubtitle = "by Starfall",
    ConfigurationSaving = { Enabled = false }
 })
 
--- [[ RNG & CRAFTING TAB ]]
+-- SafeLoad function to prevent the red "Callback Error" box
+local function SafeLoad(url)
+    local success, result = pcall(function()
+        return loadstring(game:HttpGet(url))()
+    end)
+    
+    if not success then
+        Rayfield:Notify({
+            Title = "Fetch Error",
+            Content = "Could not find module at the URL. Check GitHub path.",
+            Duration = 5
+        })
+        warn("67 HUB URL Error: " .. tostring(result))
+    end
+end
+
+-- [[ RNG TAB ]]
 local RngTab = Window:CreateTab("RNG Event", 4483362458)
+
+RngTab:CreateSection("Auto Rolling")
 
 RngTab:CreateToggle({
    Name = "Auto-Roll Dice (High Speed)",
@@ -54,25 +36,30 @@ RngTab:CreateToggle({
    Callback = function(Value)
       _G.AutoRollActive = Value
       if Value then
-          loadstring(game:HttpGet("https://raw.githubusercontent.com/TheStarfalllsInfinite/67/main/modules/autoroll.lua"))()
+          -- Uses corrected username: TheStarfallIsInfinite
+          SafeLoad("https://raw.githubusercontent.com/TheStarfallIsInfinite/67/main/modules/autoroll.lua")
       end
    end,
 })
 
+RngTab:CreateSection("Auto Crafting")
+
 RngTab:CreateToggle({
-   Name = "Auto-Craft (Priority: II -> Mega -> Mega II)",
+   Name = "Auto-Craft (II -> Mega -> Mega II)",
    CurrentValue = false,
    Flag = "AutoCraftToggle",
    Callback = function(Value)
       _G.AutoCraftActive = Value
       if Value then
-          loadstring(game:HttpGet("https://raw.githubusercontent.com/TheStarfalllsInfinite/67/main/modules/autocraft.lua"))()
+          -- Uses corrected username: TheStarfallIsInfinite
+          SafeLoad("https://raw.githubusercontent.com/TheStarfallIsInfinite/67/main/modules/autocraft.lua")
       end
    end,
 })
 
--- [[ ADMIN EVENTS TAB ]]
+-- [[ ADMIN TAB ]]
 local AdminTab = Window:CreateTab("Admin Events", 4483362458)
+
 AdminTab:CreateToggle({
    Name = "Auto-Claim Admin",
    CurrentValue = false,
@@ -80,13 +67,13 @@ AdminTab:CreateToggle({
    Callback = function(Value)
       getgenv().AdminEnabled = Value
       if Value then
-          loadstring(game:HttpGet("https://raw.githubusercontent.com/TheStarfalllsInfinite/67/main/modules/adminabuse.lua"))()
+          SafeLoad("https://raw.githubusercontent.com/TheStarfallIsInfinite/67/main/modules/adminabuse.lua")
       end
    end,
 })
 
 Rayfield:Notify({
-   Title = "67 HUB Active",
-   Content = "Current Instance: " .. (GetCurrentInstance() or "Main World"),
+   Title = "67 HUB Loaded",
+   Content = "Ready. Please ensure you are in the RNG zone before toggling.",
    Duration = 5
 })
