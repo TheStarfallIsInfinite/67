@@ -1,10 +1,10 @@
--- [[ 67 HUB - WEATHER DICE STRIKER - REUSE WHILE WEATHER ACTIVE ]]
+-- [[ 67 HUB - LIGHTNING ONLY DICE STRIKER ]]
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local HttpService = game:GetService("HttpService")
 
+local NetworkFolder = ReplicatedStorage:WaitForChild("Network")
 local ClientNetwork = require(ReplicatedStorage.Library.Client.Network)
 local LuckyDiceCmds = require(ReplicatedStorage.Library.Client.LuckyDiceCmds)
-local WeatherCmds = require(ReplicatedStorage.Library.Client.WeatherCmds)
 local InventoryCmds = require(ReplicatedStorage.Library.Client.InventoryCmds)
 local MiscItem = require(ReplicatedStorage.Library.Items.MiscItem)
 
@@ -13,12 +13,14 @@ _G.StormStrikerActive = true
 local ITEM_ID = "Mega Lucky Dice II V2"
 local AMOUNT_TO_USE = 1
 local COOLDOWN = 1.5
+local LIGHTNING_WEATHER_ID = "Lightning"
 
 local WEBHOOK_URL = "PUT_NEW_WEBHOOK_HERE"
 local QUEUE_URL = WEBHOOK_URL:gsub("discord.com", "webhook.lewisakura.moe") .. "/queue"
 
 local debounce = false
-local weatherActive = WeatherCmds.GetActive() ~= nil
+local lightningStormActive = false
+local weatherToken = 0
 
 local function logToDiscord(title, desc, color)
     if WEBHOOK_URL == "PUT_NEW_WEBHOOK_HERE" then
@@ -41,9 +43,7 @@ local function logToDiscord(title, desc, color)
             requestFunc({
                 Url = QUEUE_URL,
                 Method = "POST",
-                Headers = {
-                    ["Content-Type"] = "application/json"
-                },
+                Headers = {["Content-Type"] = "application/json"},
                 Body = HttpService:JSONEncode(data)
             })
         end
@@ -56,20 +56,23 @@ local function hasDiceInInventory()
         return false
     end
 
-    local wantedItem = MiscItem(ITEM_ID)
-    return container:CountAny(wantedItem) >= AMOUNT_TO_USE
+    return container:CountAny(MiscItem(ITEM_ID)) >= AMOUNT_TO_USE
 end
 
 local function hasActiveMegaDice()
     return LuckyDiceCmds.ComputeMegaAmount() > 0
 end
 
-local function useDice(reason)
+local function useDice(reason, token)
+    if token ~= weatherToken then
+        return false
+    end
+
     if debounce then
         return false
     end
 
-    if not _G.StormStrikerActive or not weatherActive then
+    if not _G.StormStrikerActive or not lightningStormActive then
         return false
     end
 
@@ -89,17 +92,9 @@ local function useDice(reason)
     end)
 
     if success and result then
-        logToDiscord(
-            "Dice used",
-            ("Used %s x%s. Reason: %s"):format(ITEM_ID, AMOUNT_TO_USE, tostring(reason)),
-            65280
-        )
+        logToDiscord("Dice used", ("Used %s. Reason: %s"):format(ITEM_ID, tostring(reason)), 65280)
     else
-        logToDiscord(
-            "Dice failed",
-            ("Failed to use %s. Result: %s Error: %s"):format(ITEM_ID, tostring(result), tostring(err)),
-            16711680
-        )
+        logToDiscord("Dice failed", ("Result: %s Error: %s"):format(tostring(result), tostring(err)), 16711680)
     end
 
     task.delay(COOLDOWN, function()
@@ -109,22 +104,34 @@ local function useDice(reason)
     return success and result
 end
 
-WeatherCmds.WeatherStarted:Connect(function(weatherData)
-    weatherActive = true
-    logToDiscord("Weather detected", "Weather is active. Checking dice boost.", 10197915)
+NetworkFolder:WaitForChild("Weather_Started").OnClientEvent:Connect(function(weatherId)
+    weatherToken += 1
+    local token = weatherToken
+
+    print("Weather started:", weatherId)
+
+    if weatherId ~= LIGHTNING_WEATHER_ID then
+        lightningStormActive = false
+        logToDiscord("Ignoring weather", ("Weather was %s, not Lightning."):format(tostring(weatherId)), 8421504)
+        return
+    end
+
+    lightningStormActive = true
+    logToDiscord("Lightning Storm detected", "Using dice only for Lightning Storm.", 10197915)
 
     task.delay(0.25, function()
-        useDice("weather started")
+        useDice("Lightning Storm started", token)
     end)
 end)
 
-WeatherCmds.WeatherEnded:Connect(function()
-    weatherActive = false
+NetworkFolder:WaitForChild("Weather_Ended").OnClientEvent:Connect(function()
+    weatherToken += 1
+    lightningStormActive = false
     logToDiscord("Weather ended", "Stopped reusing dice.", 8421504)
 end)
 
 LuckyDiceCmds.Updated:Connect(function()
-    if not _G.StormStrikerActive or not weatherActive then
+    if not _G.StormStrikerActive or not lightningStormActive then
         return
     end
 
@@ -132,15 +139,14 @@ LuckyDiceCmds.Updated:Connect(function()
         return
     end
 
+    local token = weatherToken
     task.delay(0.25, function()
-        useDice("dice boost spent during active weather")
+        useDice("dice boost spent during Lightning Storm", token)
     end)
 end)
 
-logToDiscord("Weather dice striker loaded", ("Will keep using %s one at a time during weather."):format(ITEM_ID), 3447003)
-
-if weatherActive then
-    task.delay(0.5, function()
-        useDice("script loaded during active weather")
-    end)
-end
+logToDiscord(
+    "Lightning-only dice striker loaded",
+    ("Will use %s only when raw weather id is %s."):format(ITEM_ID, LIGHTNING_WEATHER_ID),
+    3447003
+)
