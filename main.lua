@@ -6,7 +6,7 @@ local Window = Rayfield:CreateWindow({
    LoadingTitle = "Connecting to GitHub...",
    LoadingSubtitle = "by Starfall",
    ConfigurationSaving = { Enabled = false },
-   Keybind = "RightShift" -- Missing line 1: Added keybind support
+   Keybind = "RightShift" 
 })
 
 -- Central loader
@@ -23,7 +23,19 @@ RngTab:CreateButton({
    Name = "Teleport to Mega Chest",
    Callback = function()
        SafeLoad("https://raw.githubusercontent.com/TheStarfallIsInfinite/67/main/modules/chesttp.lua")
-       Rayfield:Notify({Title = "Teleport", Content = "Moving to coordinates...", Duration = 3})
+   end,
+})
+
+-- NEW: HUGE NOTIFIER
+RngTab:CreateToggle({
+   Name = "Huge Pet Notifier",
+   CurrentValue = false,
+   Flag = "HugeNotif",
+   Callback = function(Value)
+      _G.HugeNotifActive = Value
+      if Value then
+          SafeLoad("https://raw.githubusercontent.com/TheStarfallIsInfinite/67/main/modules/hugenotifier.lua")
+      end
    end,
 })
 
@@ -63,7 +75,7 @@ RngTab:CreateToggle({
    end,
 })
 
--- [[ PERFORMANCE TAB ]] -- Missing section: Added Performance Tab
+-- [[ PERFORMANCE TAB ]]
 local PerformanceTab = Window:CreateTab("Performance", 4483362458)
 
 PerformanceTab:CreateToggle({
