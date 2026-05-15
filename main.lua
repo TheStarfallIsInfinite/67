@@ -5,7 +5,8 @@ local Window = Rayfield:CreateWindow({
    Name = "67 HUB | RNG & Utility",
    LoadingTitle = "Connecting to GitHub...",
    LoadingSubtitle = "by Starfall",
-   ConfigurationSaving = { Enabled = false }
+   ConfigurationSaving = { Enabled = false },
+   Keybind = "RightShift" -- Missing line 1: Added keybind support
 })
 
 -- Central loader
@@ -18,21 +19,14 @@ end
 -- [[ RNG TAB ]]
 local RngTab = Window:CreateTab("RNG Events", 4483362458)
 
--- TELEPORT TO MEGA CHEST (Using SafeLoad now!)
 RngTab:CreateButton({
    Name = "Teleport to Mega Chest",
    Callback = function()
        SafeLoad("https://raw.githubusercontent.com/TheStarfallIsInfinite/67/main/modules/chesttp.lua")
-       
-       Rayfield:Notify({
-           Title = "Teleport",
-           Content = "Executing chesttp.lua from GitHub...",
-           Duration = 3
-       })
+       Rayfield:Notify({Title = "Teleport", Content = "Moving to coordinates...", Duration = 3})
    end,
 })
 
--- AUTO ROLL
 RngTab:CreateToggle({
    Name = "Auto-Roll Dice",
    CurrentValue = false,
@@ -45,7 +39,6 @@ RngTab:CreateToggle({
    end,
 })
 
--- AUTO CRAFT
 RngTab:CreateToggle({
    Name = "Auto-Craft Dice",
    CurrentValue = false,
@@ -58,15 +51,29 @@ RngTab:CreateToggle({
    end,
 })
 
--- WEATHER STRIKER
 RngTab:CreateToggle({
-   Name = "Universal Weather Striker (Mega II)",
+   Name = "Universal Weather Striker",
    CurrentValue = false,
    Flag = "StormStriker",
    Callback = function(Value)
       _G.StormStrikerActive = Value
       if Value then
           SafeLoad("https://raw.githubusercontent.com/TheStarfallIsInfinite/67/main/modules/stormstriker.lua")
+      end
+   end,
+})
+
+-- [[ PERFORMANCE TAB ]] -- Missing section: Added Performance Tab
+local PerformanceTab = Window:CreateTab("Performance", 4483362458)
+
+PerformanceTab:CreateToggle({
+   Name = "Optimized Mode (Boost FPS)",
+   CurrentValue = false,
+   Flag = "OptiMode",
+   Callback = function(Value)
+      _G.OptimizedMode = Value
+      if Value then
+          SafeLoad("https://raw.githubusercontent.com/TheStarfallIsInfinite/67/main/modules/optimizedmode.lua")
       end
    end,
 })
